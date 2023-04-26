@@ -1,69 +1,45 @@
-import express from 'express';
-import fetch from 'node-fetch';
+// Import required modules
+const express = require('express');
+const students = require('./students');
 
+// Create the Express app
 const app = express();
-const port = 3000;
 
-app.use(express.json());
+// Set up the server to listen on port 3000
+app.listen(3000, () => {
+  console.log('Listening on port 3000');
+});
 
-let movies = [
-  { id: 1, title: 'Inception', description: 'A skilled thief is tasked with entering the dreams of others in order to plant an idea in their subconscious.', quantity: 1000 },
-  { id: 2, title: 'The Matrix', description: 'A computer programmer is drawn into a rebellion against machines that have enslaved humanity.', quantity: 500 },
-  { id: 3, title: 'The Silence of the Lambs', description: 'An FBI trainee seeks the help of a psychopathic serial killer in order to catch another serial killer.', quantity: 100 },
-  { id: 4, title: 'Fight Club', description: 'An insomniac office worker and a soap maker form an underground fight club that evolves into something much, much more.', quantity: 200 }
-];
-
-// Get all movies
+// Define the API endpoints
 app.get('/', (req, res) => {
-  res.send('Welcome to the Movies API!');
+  res.json({ message: 'API is working' });
 });
 
-app.get('/api/movies/:id', (req, res) => {
-    const movie = movies.find(m => m.id === parseInt(req.params.id));
-    if (!movie) {
-      return res.status(404).json({ error: 'Movie not found' });
-    }
-    res.status(200).json(movie);
-  });
-  
-
-// Create a new movie
-app.post('/movies', (req, res) => {
-  const movie = {
-    id: movies.length + 1,
-    title: req.body.title,
-    description: req.body.description,
-    quantity: req.body.quantity
-  };
-  movies.push(movie);
-  console.log('New movie created:', movie);
-  res.status(201).json(movie);
+app.get('/api/students', (req, res) => {
+  res.json(students);
 });
 
-// Update a movie by id
-app.put('/movies/:id', (req, res) => {
-  const movie = movies.find(m => m.id === parseInt(req.params.id));
-  if (!movie) {
-    return res.status(404).json({ error: 'Movie not found' });
+app.post('/api/students', (req, res) => {
+  console.log(req.body);
+  res.send('students post request');
+
+  students.push(req.body);
+  res.json(req.body);
+});
+
+app.put('/api/students/:id', (req, res) => {
+  const id = req.params.id;
+  const { first_name, last_name, email } = req.body;
+
+  const index = students.findIndex(student => student.id == id);
+
+  if (index >= 0) {
+    const std = students[index];
+    std.last_name = last_name;
+    std.first_name = first_name;
+    std.email = email;
+    res.json(std);
+  } else {
+    res.status(404).json({ message: 'Student not found' });
   }
-  movie.title = req.body.title;
-  movie.description = req.body.description;
-  movie.quantity = req.body.quantity;
-  console.log('Movie updated:', movie);
-  res.status(200).json(movie);
-});
-
-// Delete a movie by id
-app.delete('/movies/:id', (req, res) => {
-  const movieIndex = movies.findIndex(m => m.id === parseInt(req.params.id));
-  if (movieIndex === -1) {
-    return res.status(404).json({ error: 'Movie not found' });
-  }
-  movies.splice(movieIndex, 1);
-  console.log('Movie deleted:', req.params.id);
-  res.status(204).send();
-});
-
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
 });
